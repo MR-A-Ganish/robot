@@ -1,67 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>QuickCart Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: 'Segoe UI';
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            overflow: hidden;
         }
 
+        /* 🔥 FLOATING BLOBS */
+        .blob {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float 8s infinite ease-in-out;
+        }
+
+        .blob:nth-child(1) { top: 10%; left: 10%; }
+        .blob:nth-child(2) { bottom: 10%; right: 10%; }
+
+        @keyframes float {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        /* 🔥 CARD */
         .card {
-            background: white;
+            position: relative;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
             padding: 30px;
             border-radius: 15px;
-            width: 320px;
+            width: 300px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        h2 {
             text-align: center;
-            box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
 
         input {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             margin: 10px 0;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: none;
+            outline: none;
+        }
+
+        input:focus {
+            transform: scale(1.02);
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            background: #ff416c;
-            color: white;
+            padding: 10px;
+            background: white;
+            color: #ff416c;
             border: none;
             border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
+            transition: 0.3s;
         }
 
-        a {
-            display: block;
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .toggle {
+            text-align: center;
             margin-top: 10px;
-            color: #ff416c;
+            cursor: pointer;
         }
     </style>
 </head>
+
 <body>
 
-<div class="card">
-    <h2>Welcome Back</h2>
+<div class="blob"></div>
+<div class="blob"></div>
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="Enter Email" required>
-        <input type="password" name="password" placeholder="Enter Password" required>
-        <button type="submit">Login</button>
+<div class="card">
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" method="POST">
+        <h2>Welcome Back 👋</h2>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login 🚀</button>
+        <div class="toggle" onclick="showSignup()">New user? Sign up</div>
     </form>
 
-    <a href="/signup">Create new account</a>
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" method="POST" action="/signup" style="display:none;">
+        <h2>Create Account ✨</h2>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Sign Up 🎉</button>
+        <div class="toggle" onclick="showLogin()">Already have account?</div>
+    </form>
+
 </div>
+
+<script>
+function showSignup() {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("signupForm").style.display = "block";
+}
+
+function showLogin() {
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("signupForm").style.display = "none";
+}
+</script>
 
 </body>
 </html>
