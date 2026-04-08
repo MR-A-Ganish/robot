@@ -9,22 +9,15 @@ from robot.main import process_order
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# -------------------------------
-# RAZORPAY CONFIG
-# -------------------------------
+# Razorpay config
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_SECRET = os.environ.get("RAZORPAY_SECRET")
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
-# -------------------------------
-# INIT DATABASE
-# -------------------------------
 create_tables()
 
-# -------------------------------
-# LOGIN
-# -------------------------------
+# ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -49,9 +42,7 @@ def login():
     return render_template("login.html")
 
 
-# -------------------------------
-# SIGNUP
-# -------------------------------
+# ---------------- SIGNUP ----------------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -81,9 +72,7 @@ def signup():
     return render_template("signup.html")
 
 
-# -------------------------------
-# DASHBOARD (PRODUCT PAGE)
-# -------------------------------
+# ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
@@ -112,9 +101,7 @@ def dashboard():
     return render_template("dashboard.html", products=products)
 
 
-# -------------------------------
-# CART PAGE
-# -------------------------------
+# ---------------- CART ----------------
 @app.route("/cart")
 def cart():
     if "user" not in session:
@@ -122,12 +109,10 @@ def cart():
     return render_template("cart.html")
 
 
-# -------------------------------
-# CREATE PAYMENT (RAZORPAY)
-# -------------------------------
+# ---------------- PAYMENT ----------------
 @app.route("/create_payment", methods=["POST"])
 def create_payment():
-    amount = int(request.form["amount"]) * 100  # rupees → paise
+    amount = int(request.form["amount"]) * 100
 
     order = razorpay_client.order.create({
         "amount": amount,
@@ -142,9 +127,7 @@ def create_payment():
     })
 
 
-# -------------------------------
-# PLACE ORDER AFTER PAYMENT
-# -------------------------------
+# ---------------- PLACE ORDER ----------------
 @app.route("/place_order", methods=["POST"])
 def place_order():
     if "user" not in session:
@@ -160,13 +143,11 @@ def place_order():
         (session["user"], items, "pending")
     )
 
-    order_id = cur.fetchone() if False else None  # avoid fetch error
     conn.commit()
 
-    # 🔥 SEND TO ROBOT
+    # 🤖 Robot processing
     result = process_order(json.loads(items))
 
-    # UPDATE STATUS
     cur.execute(
         "UPDATE orders SET status=%s WHERE user_email=%s",
         ("processed", session["user"])
@@ -176,12 +157,11 @@ def place_order():
     cur.close()
     conn.close()
 
-    return f"✅ Order Placed Successfully!\n\n{result}"
+    # 🔥 SHOW RESULT PAGE
+    return render_template("result.html", result=result)
 
 
-# -------------------------------
-# INIT PRODUCTS (RUN ONCE)
-# -------------------------------
+# ---------------- INIT PRODUCTS ----------------
 @app.route("/init_products")
 def init_products():
     conn = connect_db()
@@ -208,17 +188,12 @@ def init_products():
     return "Products Added ✅"
 
 
-# -------------------------------
-# LOGOUT
-# -------------------------------
+# ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect("/")
 
 
-# -------------------------------
-# RUN APP
-# -------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
