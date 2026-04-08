@@ -2,3 +2,4 @@ flask
 werkzeug
 razorpay
 gunicorn
+psycopg2-binary

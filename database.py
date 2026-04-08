@@ -1,39 +1,52 @@
-import sqlite3
+import psycopg2
+import os
 
 def connect_db():
-    return sqlite3.connect("app.db", check_same_thread=False)
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+
+    return psycopg2.connect(DATABASE_URL)
 
 def create_tables():
     conn = connect_db()
     cur = conn.cursor()
 
+    # USERS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         email TEXT UNIQUE,
         password TEXT
     )
     """)
 
+    # PRODUCTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT,
         price INTEGER,
         image TEXT,
         weight INTEGER,
-        fragile INTEGER
+        fragile BOOLEAN
     )
     """)
 
+    # ORDERS
+    # PRODUCTS
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user TEXT,
-        items TEXT,
-        status TEXT
-    )
-    """)
+    CREATE TABLE IF NOT EXISTS products (
+    id SERIAL PRIMARY KEY,
+    name TEXT,
+    price INTEGER,
+    image TEXT,
+    weight INTEGER,
+    fragile BOOLEAN,
+    aisle TEXT,
+    shelf TEXT,
+    position INTEGER
+)
+""")
 
     conn.commit()
+    cur.close()
     conn.close()
