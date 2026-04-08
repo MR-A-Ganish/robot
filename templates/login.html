@@ -7,18 +7,53 @@
     <style>
         body {
             margin: 0;
+            font-family: 'Segoe UI';
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            font-family: 'Segoe UI';
         }
 
         .wrapper {
             display: flex;
+            gap: 50px;
             align-items: center;
-            gap: 60px;
+        }
+
+        /* 🤖 ROBOT */
+        .robot {
+            width: 150px;
+            height: 200px;
+            background: #fff;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .eyes {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .eye {
+            width: 20px;
+            height: 20px;
+            background: black;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .mouth {
+            width: 40px;
+            height: 5px;
+            background: black;
+            border-radius: 5px;
         }
 
         /* LOGIN CARD */
@@ -32,15 +67,15 @@
 
         input {
             width: 100%;
-            padding: 12px;
-            margin: 12px 0;
+            padding: 10px;
+            margin: 10px 0;
             border-radius: 8px;
             border: 1px solid #ccc;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #ff416c;
             color: white;
             border: none;
@@ -51,30 +86,6 @@
         button:hover {
             background: #ff2a5c;
         }
-
-        /* 🤖 ROBOT SVG */
-        .robot {
-            width: 180px;
-        }
-
-        .eye-white {
-            fill: white;
-        }
-
-        .pupil {
-            fill: black;
-            transition: transform 0.1s;
-        }
-
-        /* BLINK */
-        .blink {
-            animation: blink 4s infinite;
-        }
-
-        @keyframes blink {
-            0%, 90%, 100% { transform: scaleY(1); }
-            95% { transform: scaleY(0.1); }
-        }
     </style>
 </head>
 
@@ -82,35 +93,24 @@
 
 <div class="wrapper">
 
-    <!-- 🤖 SVG ROBOT -->
-    <svg class="robot" viewBox="0 0 200 200">
-
-        <!-- HEAD -->
-        <rect x="20" y="20" width="160" height="160" rx="20" fill="#ffffff"/>
-
-        <!-- EYES -->
-        <g id="eyeGroup" class="blink">
-            <circle cx="70" cy="90" r="20" class="eye-white"/>
-            <circle cx="130" cy="90" r="20" class="eye-white"/>
-
-            <circle id="pupil1" cx="70" cy="90" r="8" class="pupil"/>
-            <circle id="pupil2" cx="130" cy="90" r="8" class="pupil"/>
-        </g>
-
-        <!-- MOUTH -->
-        <rect x="70" y="130" width="60" height="10" rx="5" fill="black"/>
-
-    </svg>
+    <!-- 🤖 ROBOT -->
+    <div class="robot">
+        <div class="eyes">
+            <div class="eye" id="eye1"></div>
+            <div class="eye" id="eye2"></div>
+        </div>
+        <div class="mouth"></div>
+    </div>
 
     <!-- LOGIN -->
     <div class="card">
         <h2>Login 🚀</h2>
 
         <form method="POST">
-            <input type="email" id="email" name="email" placeholder="Email" required>
+            <input type="email" id="email" name="email" placeholder="Email"
+                   oninput="moveEyes()" required>
 
-            <input type="password" id="password" name="password"
-                   placeholder="Password"
+            <input type="password" id="password" name="password" placeholder="Password"
                    onfocus="closeEyes()" onblur="openEyes()" required>
 
             <button type="submit">Login</button>
@@ -120,26 +120,26 @@
 </div>
 
 <script>
-const pupil1 = document.getElementById("pupil1");
-const pupil2 = document.getElementById("pupil2");
+const eye1 = document.getElementById("eye1");
+const eye2 = document.getElementById("eye2");
 
-document.addEventListener("mousemove", (e) => {
-    let x = (e.clientX / window.innerWidth - 0.5) * 10;
-    let y = (e.clientY / window.innerHeight - 0.5) * 10;
+function moveEyes() {
+    // Eyes move randomly (simulate tracking typing)
+    let x = Math.random() * 6 - 3;
+    let y = Math.random() * 6 - 3;
 
-    pupil1.setAttribute("transform", `translate(${x}, ${y})`);
-    pupil2.setAttribute("transform", `translate(${x}, ${y})`);
-});
+    eye1.style.transform = `translate(${x}px, ${y}px)`;
+    eye2.style.transform = `translate(${x}px, ${y}px)`;
+}
 
-/* PASSWORD MODE */
 function closeEyes() {
-    pupil1.setAttribute("r", "0");
-    pupil2.setAttribute("r", "0");
+    eye1.style.height = "4px";
+    eye2.style.height = "4px";
 }
 
 function openEyes() {
-    pupil1.setAttribute("r", "8");
-    pupil2.setAttribute("r", "8");
+    eye1.style.height = "20px";
+    eye2.style.height = "20px";
 }
 </script>
 
