@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Payment 💳</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+}
+
+.card {
+    background: rgba(255,255,255,0.15);
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+}
+
+button {
+    padding:12px;
+    width:100%;
+    border:none;
+    border-radius:8px;
+    background:white;
+    color:#764ba2;
+    font-weight:bold;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Confirm Payment 💳</h2>
+    <p>Total: ₹{{amount}}</p>
+
+    <button onclick="pay()">Pay Now</button>
+</div>
+
+<script>
+function pay(){
+    fetch("/create_payment", {
+        method: "POST",
+        headers: {"Content-Type":"application/x-www-form-urlencoded"},
+        body: "amount={{amount}}"
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: "INR",
+            name: "QuickCart",
+            order_id: data.order_id,
+
+            handler: function(response){
+                window.location.href = "/payment_success";
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    });
+}
+</script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</body>
+</html>
