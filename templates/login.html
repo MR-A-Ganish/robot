@@ -1,219 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QuickCart Login 🤖</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login</title>
+<style>
+body {
+    background: linear-gradient(270deg,#ff416c,#ff4b2b,#ff6a00);
+    display:flex;justify-content:center;align-items:center;height:100vh;
+    font-family:sans-serif;
+}
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(270deg, #ff416c, #ff4b2b, #ff6a00);
-            background-size: 600% 600%;
-            animation: gradient 10s ease infinite;
-            font-family: 'Segoe UI';
-            overflow: hidden;
-        }
+.card {
+    background: rgba(255,255,255,0.2);
+    padding:30px;border-radius:15px;
+}
 
-        @keyframes gradient {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
-        }
+input,button {
+    width:100%;padding:10px;margin:10px 0;
+}
 
-        .wrapper {
-            display: flex;
-            gap: 60px;
-            align-items: center;
-        }
-
-        /* 🤖 ROBOT */
-        .robot {
-            width: 180px;
-        }
-
-        /* CARD */
-        .card {
-            backdrop-filter: blur(15px);
-            background: rgba(255,255,255,0.15);
-            padding: 30px;
-            border-radius: 20px;
-            width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            color: white;
-        }
-
-        h2 {
-            text-align: center;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border: none;
-            outline: none;
-        }
-
-        input:focus {
-            box-shadow: 0 0 10px #fff;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: white;
-            color: #ff416c;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-        }
-
-        a {
-            color: white;
-            font-weight: bold;
-            text-decoration: underline;
-            transition: 0.3s;
-        }
-
-        a:hover {
-            color: black;
-        }
-
-        /* LOADER */
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .spinner {
-            border: 4px solid #fff;
-            border-top: 4px solid #ff416c;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            animation: spin 1s linear infinite;
-            margin: auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+.error {
+    background:red;color:white;padding:8px;border-radius:8px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="wrapper">
+<div class="card">
+<h2>Login 🚀</h2>
 
-    <!-- 🤖 ROBOT -->
-    <svg class="robot" viewBox="0 0 200 200">
-        <rect x="20" y="20" width="160" height="160" rx="30" fill="#fff"/>
+<form method="POST">
+<input name="email" placeholder="Email" required>
+<input name="password" type="password" placeholder="Password" required>
 
-        <!-- Eyes -->
-        <circle cx="70" cy="90" r="18" fill="white"/>
-        <circle cx="130" cy="90" r="18" fill="white"/>
+<button>Login</button>
 
-        <circle id="pupil1" cx="70" cy="90" r="6" fill="black"/>
-        <circle id="pupil2" cx="130" cy="90" r="6" fill="black"/>
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
 
-        <!-- Mouth -->
-        <rect id="mouth" x="70" y="130" width="60" height="10" rx="5" fill="black"/>
-    </svg>
-
-    <!-- LOGIN CARD -->
-    <div class="card">
-        <h2>Login 🚀</h2>
-
-        <form method="POST" onsubmit="showLoader()">
-            <input type="email" name="email" placeholder="Email" required>
-
-            <input type="password" id="password" name="password"
-                   placeholder="Password" required>
-
-            <button type="submit">Login</button>
-
-            <div class="loader" id="loader">
-                <div class="spinner"></div>
-                <p>Robot verifying... 🤖</p>
-            </div>
-
-            <div style="text-align:center; margin-top:15px;">
-                New here?
-                <a href="/signup" onclick="transition(event, '/signup')">
-                    Create Account 🚀
-                </a>
-            </div>
-        </form>
-    </div>
+<p>New user? <a href="/signup">Signup</a></p>
+</form>
 
 </div>
-
-<script>
-const pupil1 = document.getElementById("pupil1");
-const pupil2 = document.getElementById("pupil2");
-const passwordInput = document.getElementById("password");
-
-/* 👀 FOLLOW CURSOR */
-document.addEventListener("mousemove", (e) => {
-    let x = (e.clientX / window.innerWidth - 0.5) * 12;
-    let y = (e.clientY / window.innerHeight - 0.5) * 12;
-
-    pupil1.setAttribute("transform", `translate(${x}, ${y})`);
-    pupil2.setAttribute("transform", `translate(${x}, ${y})`);
-});
-
-/* 🙈 PASSWORD MODE */
-passwordInput.addEventListener("focus", () => {
-    pupil1.setAttribute("r", "0");
-    pupil2.setAttribute("r", "0");
-});
-
-passwordInput.addEventListener("blur", () => {
-    pupil1.setAttribute("r", "6");
-    pupil2.setAttribute("r", "6");
-});
-
-/* 👁 BLINK */
-setInterval(() => {
-    pupil1.setAttribute("r", "0");
-    pupil2.setAttribute("r", "0");
-
-    setTimeout(() => {
-        pupil1.setAttribute("r", "6");
-        pupil2.setAttribute("r", "6");
-    }, 150);
-}, 3000);
-
-/* 🔄 LOADER */
-function showLoader() {
-    document.getElementById("loader").style.display = "block";
-}
-
-/* 🔀 PAGE TRANSITION */
-function transition(e, url) {
-    e.preventDefault();
-
-    document.body.style.opacity = 0;
-    document.body.style.transform = "translateX(50px)";
-    document.body.style.transition = "0.4s";
-
-    setTimeout(() => {
-        window.location.href = url;
-    }, 400);
-}
-</script>
 
 </body>
 </html>
