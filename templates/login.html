@@ -122,7 +122,7 @@ button {
 <h2>Login 🚀</h2>
 
 <input type="email" name="email" placeholder="Email" required>
-<input type="password" id="password" name="password" placeholder="Password" required>
+<input type="password" name="password" placeholder="Password" required>
 
 <button>Login</button>
 
@@ -133,6 +133,7 @@ button {
 
 <div class="toggle" onclick="showSignup()">New user? Sign up</div>
 </form>
+
 
 <!-- SIGNUP -->
 <form id="signupForm" method="POST" action="/signup" style="{% if form!='signup' %}display:none{% endif %}">
@@ -145,6 +146,7 @@ button {
 
 <div class="toggle" onclick="showLogin()">Already user?</div>
 </form>
+
 
 {% if error %}
 <div class="error">{{error}}</div>
@@ -159,7 +161,8 @@ window.onload = function () {
 
     const pupil1 = document.getElementById("pupil1");
     const pupil2 = document.getElementById("pupil2");
-    const passwordInput = document.getElementById("password");
+
+    const passwordInputs = document.querySelectorAll("input[type='password']");
 
     /* 👀 FOLLOW CURSOR */
     document.addEventListener("mousemove", (e) => {
@@ -170,27 +173,27 @@ window.onload = function () {
         pupil2.setAttribute("transform", `translate(${x}, ${y})`);
     });
 
-    /* 🙈 PASSWORD MODE */
-    if (passwordInput) {
-        passwordInput.addEventListener("focus", () => {
-            pupil1.setAttribute("r", "0");
-            pupil2.setAttribute("r", "0");
+    /* 🙈 CLOSE EYES */
+    passwordInputs.forEach(input => {
+        input.addEventListener("focus", () => {
+            pupil1.style.display = "none";
+            pupil2.style.display = "none";
         });
 
-        passwordInput.addEventListener("blur", () => {
-            pupil1.setAttribute("r", "6");
-            pupil2.setAttribute("r", "6");
+        input.addEventListener("blur", () => {
+            pupil1.style.display = "block";
+            pupil2.style.display = "block";
         });
-    }
+    });
 
     /* 👁 BLINK */
     setInterval(() => {
-        pupil1.setAttribute("r", "0");
-        pupil2.setAttribute("r", "0");
+        pupil1.style.display = "none";
+        pupil2.style.display = "none";
 
         setTimeout(() => {
-            pupil1.setAttribute("r", "6");
-            pupil2.setAttribute("r", "6");
+            pupil1.style.display = "block";
+            pupil2.style.display = "block";
         }, 150);
     }, 3000);
 };
