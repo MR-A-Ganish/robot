@@ -155,40 +155,45 @@ button {
 </div>
 
 <script>
-const pupil1 = document.getElementById("pupil1");
-const pupil2 = document.getElementById("pupil2");
-const passwordInput = document.getElementById("password");
+window.onload = function () {
 
-/* 👀 FOLLOW CURSOR */
-document.addEventListener("mousemove", (e) => {
-    let x = (e.clientX / window.innerWidth - 0.5) * 12;
-    let y = (e.clientY / window.innerHeight - 0.5) * 12;
+    const pupil1 = document.getElementById("pupil1");
+    const pupil2 = document.getElementById("pupil2");
+    const passwordInput = document.getElementById("password");
 
-    pupil1.setAttribute("transform", `translate(${x}, ${y})`);
-    pupil2.setAttribute("transform", `translate(${x}, ${y})`);
-});
+    /* 👀 FOLLOW CURSOR */
+    document.addEventListener("mousemove", (e) => {
+        let x = (e.clientX / window.innerWidth - 0.5) * 12;
+        let y = (e.clientY / window.innerHeight - 0.5) * 12;
 
-/* 🙈 PASSWORD MODE */
-passwordInput.addEventListener("focus", () => {
-    pupil1.setAttribute("r", "0");
-    pupil2.setAttribute("r", "0");
-});
+        pupil1.setAttribute("transform", `translate(${x}, ${y})`);
+        pupil2.setAttribute("transform", `translate(${x}, ${y})`);
+    });
 
-passwordInput.addEventListener("blur", () => {
-    pupil1.setAttribute("r", "6");
-    pupil2.setAttribute("r", "6");
-});
+    /* 🙈 PASSWORD MODE */
+    if (passwordInput) {
+        passwordInput.addEventListener("focus", () => {
+            pupil1.setAttribute("r", "0");
+            pupil2.setAttribute("r", "0");
+        });
 
-/* 👁 BLINK */
-setInterval(() => {
-    pupil1.setAttribute("r", "0");
-    pupil2.setAttribute("r", "0");
+        passwordInput.addEventListener("blur", () => {
+            pupil1.setAttribute("r", "6");
+            pupil2.setAttribute("r", "6");
+        });
+    }
 
-    setTimeout(() => {
-        pupil1.setAttribute("r", "6");
-        pupil2.setAttribute("r", "6");
-    }, 150);
-}, 3000);
+    /* 👁 BLINK */
+    setInterval(() => {
+        pupil1.setAttribute("r", "0");
+        pupil2.setAttribute("r", "0");
+
+        setTimeout(() => {
+            pupil1.setAttribute("r", "6");
+            pupil2.setAttribute("r", "6");
+        }, 150);
+    }, 3000);
+};
 
 /* 🔄 LOADER */
 function showLoader() {
