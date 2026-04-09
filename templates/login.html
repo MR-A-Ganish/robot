@@ -93,6 +93,27 @@ button {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* 😢 SHAKE */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.4s;
+}
+
+/* 🤖 TURN AWAY */
+.turn-away {
+    transform: rotate(-25deg) translateX(-10px);
+    transform-origin: center;
+    transition: 0.4s ease;
+}
 </style>
 </head>
 
@@ -102,17 +123,19 @@ button {
 
 <!-- 🤖 ROBOT -->
 <svg class="robot" viewBox="0 0 200 200">
-    <rect x="20" y="20" width="160" height="160" rx="30" fill="#fff"/>
+    <g id="robotFace">
+        <rect x="20" y="20" width="160" height="160" rx="30" fill="#fff"/>
 
-    <!-- Eyes -->
-    <circle cx="70" cy="90" r="18" fill="white"/>
-    <circle cx="130" cy="90" r="18" fill="white"/>
+        <!-- Eyes -->
+        <circle cx="70" cy="90" r="18" fill="white"/>
+        <circle cx="130" cy="90" r="18" fill="white"/>
 
-    <circle id="pupil1" cx="70" cy="90" r="6" fill="black"/>
-    <circle id="pupil2" cx="130" cy="90" r="6" fill="black"/>
+        <circle id="pupil1" cx="70" cy="90" r="6" fill="black"/>
+        <circle id="pupil2" cx="130" cy="90" r="6" fill="black"/>
 
-    <!-- Mouth -->
-    <rect x="70" y="130" width="60" height="10" rx="5" fill="black"/>
+        <!-- Mouth -->
+        <rect x="70" y="130" width="60" height="10" rx="5" fill="black"/>
+    </g>
 </svg>
 
 <div class="card">
@@ -161,11 +184,18 @@ window.onload = function () {
 
     const pupil1 = document.getElementById("pupil1");
     const pupil2 = document.getElementById("pupil2");
+    const face = document.getElementById("robotFace");
+    const robot = document.querySelector(".robot");
 
     const passwordInputs = document.querySelectorAll("input[type='password']");
 
+    let isTypingPassword = false;
+
     /* 👀 FOLLOW CURSOR */
     document.addEventListener("mousemove", (e) => {
+
+        if (isTypingPassword) return;
+
         let x = (e.clientX / window.innerWidth - 0.5) * 12;
         let y = (e.clientY / window.innerHeight - 0.5) * 12;
 
@@ -173,29 +203,54 @@ window.onload = function () {
         pupil2.setAttribute("transform", `translate(${x}, ${y})`);
     });
 
-    /* 🙈 CLOSE EYES */
+    /* 🙈 PASSWORD TYPING */
     passwordInputs.forEach(input => {
-        input.addEventListener("focus", () => {
+
+        input.addEventListener("input", () => {
+            isTypingPassword = true;
+
             pupil1.style.display = "none";
             pupil2.style.display = "none";
+
+            face.classList.add("turn-away");
         });
 
         input.addEventListener("blur", () => {
+            isTypingPassword = false;
+
             pupil1.style.display = "block";
             pupil2.style.display = "block";
+
+            face.classList.remove("turn-away");
         });
+
     });
 
     /* 👁 BLINK */
     setInterval(() => {
+
+        if (isTypingPassword) return;
+
         pupil1.style.display = "none";
         pupil2.style.display = "none";
 
         setTimeout(() => {
-            pupil1.style.display = "block";
-            pupil2.style.display = "block";
+            if (!isTypingPassword) {
+                pupil1.style.display = "block";
+                pupil2.style.display = "block";
+            }
         }, 150);
+
     }, 3000);
+
+    /* 😢 SHAKE ON ERROR */
+    {% if error %}
+        robot.classList.add("shake");
+
+        setTimeout(() => {
+            robot.classList.remove("shake");
+        }, 500);
+    {% endif %}
 };
 
 /* 🔄 LOADER */
