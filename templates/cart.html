@@ -47,6 +47,12 @@ button {
     font-weight:bold;
     margin-top:20px;
 }
+
+.empty {
+    text-align:center;
+    margin-top:50px;
+    font-size:20px;
+}
 </style>
 </head>
 
@@ -60,6 +66,7 @@ button {
 
     {% for item in cart %}
     <div class="card">
+
         <div>
             <h3>{{item.name}}</h3>
             <p>₹{{item.price}}</p>
@@ -68,6 +75,7 @@ button {
         <a href="/remove_from_cart/{{loop.index0}}">
             <button class="remove">Remove ❌</button>
         </a>
+
     </div>
     {% endfor %}
 
@@ -78,7 +86,14 @@ button {
     </a>
 
 {% else %}
-    <h3>Your cart is empty 😢</h3>
+
+    <div class="empty">
+        <p>Your cart is empty 😢</p>
+        <a href="/dashboard">
+            <button>Go Shopping 🛍️</button>
+        </a>
+    </div>
+
 {% endif %}
 
 </div>

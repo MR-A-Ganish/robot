@@ -7,7 +7,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from robot.main import process_order
 
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = "supersecretkey"
+
+# ✅ SESSION FIX
+app.config["SESSION_PERMANENT"] = False
 
 
 # ---------------- LOGIN ----------------
@@ -31,6 +34,7 @@ def login():
 
         if user and check_password_hash(user[2], password):
             session["user"] = email
+            session["cart"] = []   # ✅ initialize cart
             return redirect("/dashboard")
         else:
             error = "Invalid email or password ❌"
@@ -53,7 +57,7 @@ def signup():
 
     hashed = generate_password_hash(password)
 
-    cur.execute("INSERT INTO users (email, password) VALUES (%s, %s)", (email, hashed))
+    cur.execute("INSERT INTO users (email, password) VALUES (%s,%s)", (email, hashed))
 
     conn.commit()
     cur.close()
@@ -92,6 +96,10 @@ def dashboard():
 # ---------------- ADD TO CART ----------------
 @app.route("/add_to_cart/<int:product_id>")
 def add_to_cart(product_id):
+
+    if "user" not in session:
+        return redirect("/")
+
     conn = connect_db()
     cur = conn.cursor()
 
@@ -100,6 +108,9 @@ def add_to_cart(product_id):
 
     cur.close()
     conn.close()
+
+    if not p:
+        return "Product not found ❌"
 
     item = {
         "id": p[0],
@@ -111,14 +122,20 @@ def add_to_cart(product_id):
 
     cart = session.get("cart", [])
     cart.append(item)
+
     session["cart"] = cart
 
-    return redirect("/dashboard")
+    print("✅ Cart:", cart)  # DEBUG
+
+    return redirect("/cart")   # ✅ direct to cart
 
 
 # ---------------- CART ----------------
 @app.route("/cart")
 def cart():
+    if "user" not in session:
+        return redirect("/")
+
     cart = session.get("cart", [])
     total = sum(item["price"] for item in cart)
 
@@ -147,7 +164,7 @@ def payment():
     return render_template("payment.html", amount=total)
 
 
-# ---------------- PAYMENT CREATE ----------------
+# ---------------- CREATE PAYMENT ----------------
 @app.route("/create_payment", methods=["POST"])
 def create_payment():
     key = os.environ.get("RAZORPAY_KEY_ID")
@@ -169,9 +186,10 @@ def create_payment():
     })
 
 
-# ---------------- SUCCESS ----------------
+# ---------------- PAYMENT SUCCESS ----------------
 @app.route("/payment_success")
 def payment_success():
+
     items = session.get("cart", [])
 
     conn = connect_db()
@@ -193,10 +211,11 @@ def payment_success():
     )
 
     conn.commit()
+
     cur.close()
     conn.close()
 
-    session["cart"] = []
+    session["cart"] = []   # clear cart
 
     return render_template("result.html", result=result)
 
