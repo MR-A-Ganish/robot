@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Order Status 🤖</title>
+<title>Robot Processing 🤖</title>
+
 <style>
 body {
-    font-family: sans-serif;
-    background:#111;
-    color:#0f0;
-    padding:20px;
+    font-family: monospace;
+    background: #000;
+    color: #00ff00;
+    padding: 30px;
+}
+
+.box {
+    background: rgba(0,255,0,0.1);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+a {
+    display:inline-block;
+    margin-top:20px;
+    padding:10px;
+    background:white;
+    color:black;
+    text-decoration:none;
+    border-radius:5px;
 }
 </style>
 </head>
+
 <body>
 
-<h2>🤖 Robot Processing</h2>
+<h2>🤖 Robot Execution Started...</h2>
 
+<div class="box">
 <pre>
-{{ result }}
+{{result}}
 </pre>
+</div>
 
 <a href="/dashboard">⬅ Back to Dashboard</a>
 

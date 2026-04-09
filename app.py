@@ -1,19 +1,13 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
-import os
 import json
+import os
 import razorpay
 from database import connect_db, create_tables
 from werkzeug.security import generate_password_hash, check_password_hash
 from robot.main import process_order
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
-
-# Razorpay keys
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
-RAZORPAY_SECRET = os.environ.get("RAZORPAY_SECRET")
-
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
+app.secret_key = "secret123"
 
 
 # ---------------- LOGIN ----------------
@@ -59,10 +53,7 @@ def signup():
 
     hashed = generate_password_hash(password)
 
-    cur.execute(
-        "INSERT INTO users (email, password) VALUES (%s, %s)",
-        (email, hashed)
-    )
+    cur.execute("INSERT INTO users (email, password) VALUES (%s, %s)", (email, hashed))
 
     conn.commit()
     cur.close()
@@ -98,68 +89,104 @@ def dashboard():
     return render_template("dashboard.html", products=products)
 
 
+# ---------------- ADD TO CART ----------------
+@app.route("/add_to_cart/<int:product_id>")
+def add_to_cart(product_id):
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM products WHERE id=%s", (product_id,))
+    p = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    item = {
+        "id": p[0],
+        "name": p[1],
+        "price": p[2],
+        "image": p[3],
+        "fragile": p[5]
+    }
+
+    cart = session.get("cart", [])
+    cart.append(item)
+    session["cart"] = cart
+
+    return redirect("/dashboard")
+
+
 # ---------------- CART ----------------
-@app.route("/cart", methods=["POST"])
+@app.route("/cart")
 def cart():
-    items = request.form["items"]
-    session["cart"] = items
-    return redirect("/payment")
+    cart = session.get("cart", [])
+    total = sum(item["price"] for item in cart)
+
+    return render_template("cart.html", cart=cart, total=total)
 
 
-# ---------------- PAYMENT PAGE ----------------
+# ---------------- REMOVE ----------------
+@app.route("/remove_from_cart/<int:index>")
+def remove_from_cart(index):
+    cart = session.get("cart", [])
+
+    if 0 <= index < len(cart):
+        cart.pop(index)
+
+    session["cart"] = cart
+
+    return redirect("/cart")
+
+
+# ---------------- PAYMENT ----------------
 @app.route("/payment")
 def payment():
-    if "user" not in session:
-        return redirect("/")
-
-    items = json.loads(session.get("cart", "[]"))
-
-    total = sum(item["price"] for item in items)
+    cart = session.get("cart", [])
+    total = sum(item["price"] for item in cart)
 
     return render_template("payment.html", amount=total)
 
 
-# ---------------- CREATE PAYMENT ----------------
+# ---------------- PAYMENT CREATE ----------------
 @app.route("/create_payment", methods=["POST"])
 def create_payment():
+    key = os.environ.get("RAZORPAY_KEY_ID")
+    secret = os.environ.get("RAZORPAY_SECRET")
+
+    client = razorpay.Client(auth=(key, secret))
+
     amount = int(request.form["amount"]) * 100
 
-    order = razorpay_client.order.create({
+    order = client.order.create({
         "amount": amount,
-        "currency": "INR",
-        "payment_capture": 1
+        "currency": "INR"
     })
 
     return jsonify({
         "order_id": order["id"],
-        "key": RAZORPAY_KEY_ID,
+        "key": key,
         "amount": amount
     })
 
 
-# ---------------- PAYMENT SUCCESS ----------------
+# ---------------- SUCCESS ----------------
 @app.route("/payment_success")
 def payment_success():
-    if "user" not in session:
-        return redirect("/")
-
-    items = json.loads(session.get("cart", "[]"))
+    items = session.get("cart", [])
 
     conn = connect_db()
     cur = conn.cursor()
 
-    # Store order
     cur.execute(
-        "INSERT INTO orders (user_email, items, status) VALUES (%s, %s, %s)",
+        "INSERT INTO orders (user_email, items, status) VALUES (%s,%s,%s)",
         (session["user"], json.dumps(items), "processing")
     )
 
     conn.commit()
 
-    # 🤖 ROBOT PROCESS
+    # 🤖 ROBOT EXECUTION
     result = process_order(items)
 
-    # Update status
     cur.execute(
         "UPDATE orders SET status=%s WHERE user_email=%s",
         ("completed", session["user"])
@@ -169,13 +196,15 @@ def payment_success():
     cur.close()
     conn.close()
 
+    session["cart"] = []
+
     return render_template("result.html", result=result)
 
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
+    session.clear()
     return redirect("/")
 
 
