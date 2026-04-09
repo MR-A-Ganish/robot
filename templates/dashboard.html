@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>QuickCart Dashboard 🛒</title>
+<title>Dashboard 🛍️</title>
 
 <style>
 body {
@@ -11,9 +11,10 @@ body {
     padding:20px;
 }
 
-.container {
-    max-width:900px;
-    margin:auto;
+.top-bar {
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
 }
 
 .grid {
@@ -39,37 +40,44 @@ button {
     font-weight:bold;
     cursor:pointer;
 }
-
-.top-bar {
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:20px;
-}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
 <div class="top-bar">
-    <h2>🛍️ Products</h2>
 
-    <div>
-        <a href="/cart">
-            <button>🛒 Cart</button>
-        </a>
+<h2>🛍️ Products</h2>
 
-        <a href="/logout">
-            <button>Logout</button>
-        </a>
-    </div>
+<div style="position:relative;">
+    <a href="/cart">
+        <button>🛒 Cart</button>
+    </a>
+
+    {% if session.cart %}
+    <span style="
+        position:absolute;
+        top:-10px;
+        right:-10px;
+        background:red;
+        color:white;
+        border-radius:50%;
+        padding:5px 10px;
+        font-size:12px;
+    ">
+        {{ session.cart | length }}
+    </span>
+    {% endif %}
+</div>
+
 </div>
 
 <div class="grid">
 
 {% for product in products %}
 <div class="card">
+
+    <img src="{{product.img}}" width="100">
 
     <h3>{{product.name}}</h3>
     <p>₹{{product.price}}</p>
@@ -80,8 +88,6 @@ button {
 
 </div>
 {% endfor %}
-
-</div>
 
 </div>
 

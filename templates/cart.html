@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Your Cart 🛒</title>
+<title>Cart 🛒</title>
 
 <style>
 body {
@@ -18,24 +18,31 @@ body {
 
 .card {
     background: rgba(255,255,255,0.1);
-    padding:20px;
+    padding:15px;
     border-radius:12px;
     margin-bottom:15px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    gap:15px;
+}
+
+img {
+    width:60px;
+    height:60px;
+    border-radius:10px;
+}
+
+.qty {
+    display:flex;
+    align-items:center;
+    gap:10px;
 }
 
 button {
-    padding:8px 12px;
+    padding:6px 10px;
     border:none;
     border-radius:6px;
     cursor:pointer;
-}
-
-.remove {
-    background:#ff4b5c;
-    color:white;
 }
 
 .checkout {
@@ -46,12 +53,6 @@ button {
     font-size:18px;
     font-weight:bold;
     margin-top:20px;
-}
-
-.empty {
-    text-align:center;
-    margin-top:50px;
-    font-size:20px;
 }
 </style>
 </head>
@@ -67,14 +68,24 @@ button {
     {% for item in cart %}
     <div class="card">
 
-        <div>
+        <img src="{{item.image}}">
+
+        <div style="flex:1;">
             <h3>{{item.name}}</h3>
             <p>₹{{item.price}}</p>
         </div>
 
-        <a href="/remove_from_cart/{{loop.index0}}">
-            <button class="remove">Remove ❌</button>
-        </a>
+        <div class="qty">
+            <a href="/decrease/{{loop.index0}}">
+                <button>-</button>
+            </a>
+
+            <span>{{item.qty}}</span>
+
+            <a href="/increase/{{loop.index0}}">
+                <button>+</button>
+            </a>
+        </div>
 
     </div>
     {% endfor %}
@@ -86,14 +97,7 @@ button {
     </a>
 
 {% else %}
-
-    <div class="empty">
-        <p>Your cart is empty 😢</p>
-        <a href="/dashboard">
-            <button>Go Shopping 🛍️</button>
-        </a>
-    </div>
-
+    <h3>Your cart is empty 😢</h3>
 {% endif %}
 
 </div>
