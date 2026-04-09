@@ -16,20 +16,26 @@ def home():
 def login():
 
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+        # ✅ CLEAN INPUT (IMPORTANT FIX)
+        email = request.form["email"].strip()
+        password = request.form["password"].strip()
 
         conn = connect_db()
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM users WHERE email=%s AND password=%s",
-                    (email, password))
+        # ✅ FETCH ONLY BY EMAIL (SAFE METHOD)
+        cur.execute("SELECT * FROM users WHERE email=%s", (email,))
         user = cur.fetchone()
+
+        # 🔍 DEBUG (remove later if you want)
+        print("DB USER:", user)
+        print("INPUT:", email, password)
 
         cur.close()
         conn.close()
 
-        if user:
+        # ✅ PASSWORD CHECK IN PYTHON
+        if user and user[2] == password:
             session["user"] = email
             return redirect("/dashboard")
         else:
@@ -46,8 +52,8 @@ def login():
 @app.route("/signup", methods=["POST"])
 def signup():
 
-    email = request.form["email"]
-    password = request.form["password"]
+    email = request.form["email"].strip()
+    password = request.form["password"].strip()
 
     conn = connect_db()
     cur = conn.cursor()
@@ -123,14 +129,12 @@ def add_to_cart(product_id):
 
     cart = session.get("cart", [])
 
-    # already exists → increase qty
     for item in cart:
         if item["id"] == p[0]:
             item["qty"] += 1
             session["cart"] = cart
             return redirect("/cart")
 
-    # new item
     cart.append({
         "id": p[0],
         "name": p[1],
@@ -232,7 +236,6 @@ def result():
     output.append("🚚 Moving to delivery zone")
     output.append("✅ Order ready!")
 
-    # clear cart after order
     session.pop("cart", None)
 
     return render_template("result.html", output=output)
