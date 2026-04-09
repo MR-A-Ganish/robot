@@ -1,94 +1,76 @@
-from flask import Flask, render_template, request, redirect, session
-from database import connect_db
+from flask import Flask, render_template, request, redirect, session, jsonify
+import json
+import os
+import razorpay
+from database import connect_db, create_tables
+from werkzeug.security import generate_password_hash, check_password_hash
+from robot.main import process_order
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-
-# ---------------- HOME ----------------
-@app.route("/")
-def home():
-    return redirect("/login")
+# ✅ SESSION FIX
+app.config["SESSION_PERMANENT"] = False
 
 
 # ---------------- LOGIN ----------------
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
+    error = None
+    form = "login"
 
     if request.method == "POST":
-        # ✅ CLEAN INPUT (IMPORTANT FIX)
-        email = request.form["email"].strip()
-        password = request.form["password"].strip()
+        email = request.form["email"]
+        password = request.form["password"]
 
         conn = connect_db()
         cur = conn.cursor()
 
-        # ✅ FETCH ONLY BY EMAIL (SAFE METHOD)
         cur.execute("SELECT * FROM users WHERE email=%s", (email,))
         user = cur.fetchone()
-
-        # 🔍 DEBUG (remove later if you want)
-        print("DB USER:", user)
-        print("INPUT:", email, password)
 
         cur.close()
         conn.close()
 
-        # ✅ PASSWORD CHECK IN PYTHON
-        if user and user[2] == password:
+        if user and check_password_hash(user[2], password):
             session["user"] = email
+            session["cart"] = []   # ✅ initialize cart
             return redirect("/dashboard")
         else:
-            return render_template(
-                "login.html",
-                error="❌ Invalid credentials",
-                form="login"
-            )
+            error = "Invalid email or password ❌"
 
-    return render_template("login.html", form="login")
+    return render_template("login.html", error=error, form=form)
 
 
 # ---------------- SIGNUP ----------------
 @app.route("/signup", methods=["POST"])
 def signup():
-
-    email = request.form["email"].strip()
-    password = request.form["password"].strip()
+    email = request.form["email"]
+    password = request.form["password"]
 
     conn = connect_db()
     cur = conn.cursor()
 
-    try:
-        cur.execute(
-            "INSERT INTO users (email, password) VALUES (%s, %s)",
-            (email, password)
-        )
-        conn.commit()
+    cur.execute("SELECT * FROM users WHERE email=%s", (email,))
+    if cur.fetchone():
+        return render_template("login.html", error="User already exists ❌", form="signup")
 
-        return render_template(
-            "login.html",
-            error="✅ Account created! Please login",
-            form="login"
-        )
+    hashed = generate_password_hash(password)
 
-    except:
-        return render_template(
-            "login.html",
-            error="⚠️ User already exists",
-            form="signup"
-        )
+    cur.execute("INSERT INTO users (email, password) VALUES (%s,%s)", (email, hashed))
 
-    finally:
-        cur.close()
-        conn.close()
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return redirect("/")
 
 
 # ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
-
     if "user" not in session:
-        return redirect("/login")
+        return redirect("/")
 
     conn = connect_db()
     cur = conn.cursor()
@@ -115,6 +97,9 @@ def dashboard():
 @app.route("/add_to_cart/<int:product_id>")
 def add_to_cart(product_id):
 
+    if "user" not in session:
+        return redirect("/")
+
     conn = connect_db()
     cur = conn.cursor()
 
@@ -125,129 +110,124 @@ def add_to_cart(product_id):
     conn.close()
 
     if not p:
-        return redirect("/dashboard")
+        return "Product not found ❌"
 
-    cart = session.get("cart", [])
-
-    for item in cart:
-        if item["id"] == p[0]:
-            item["qty"] += 1
-            session["cart"] = cart
-            return redirect("/cart")
-
-    cart.append({
+    item = {
         "id": p[0],
         "name": p[1],
         "price": p[2],
         "image": p[3],
-        "qty": 1,
         "fragile": p[5]
-    })
+    }
+
+    cart = session.get("cart", [])
+    cart.append(item)
 
     session["cart"] = cart
 
-    return redirect("/cart")
+    print("✅ Cart:", cart)  # DEBUG
+
+    return redirect("/cart")   # ✅ direct to cart
 
 
 # ---------------- CART ----------------
 @app.route("/cart")
 def cart():
-
     if "user" not in session:
-        return redirect("/login")
+        return redirect("/")
 
     cart = session.get("cart", [])
+    total = sum(item["price"] for item in cart)
 
-    total = sum(item["price"] * item["qty"] for item in cart)
-    count = sum(item["qty"] for item in cart)
-
-    return render_template(
-        "cart.html",
-        cart=cart,
-        total=total,
-        count=count
-    )
+    return render_template("cart.html", cart=cart, total=total)
 
 
-# ---------------- INCREASE ----------------
-@app.route("/increase/<int:index>")
-def increase(index):
+# ---------------- REMOVE ----------------
+@app.route("/remove_from_cart/<int:index>")
+def remove_from_cart(index):
     cart = session.get("cart", [])
 
-    if index < len(cart):
-        cart[index]["qty"] += 1
+    if 0 <= index < len(cart):
+        cart.pop(index)
 
     session["cart"] = cart
-    return redirect("/cart")
 
-
-# ---------------- DECREASE ----------------
-@app.route("/decrease/<int:index>")
-def decrease(index):
-    cart = session.get("cart", [])
-
-    if index < len(cart):
-        if cart[index]["qty"] > 1:
-            cart[index]["qty"] -= 1
-        else:
-            cart.pop(index)
-
-    session["cart"] = cart
     return redirect("/cart")
 
 
 # ---------------- PAYMENT ----------------
-@app.route("/payment", methods=["GET", "POST"])
+@app.route("/payment")
 def payment():
-
-    if "cart" not in session or len(session["cart"]) == 0:
-        return redirect("/dashboard")
-
-    if request.method == "POST":
-        return redirect("/result")
-
-    return render_template("payment.html")
-
-
-# ---------------- RESULT (ROBOT OUTPUT) ----------------
-@app.route("/result")
-def result():
-
     cart = session.get("cart", [])
+    total = sum(item["price"] for item in cart)
 
-    if not cart:
-        return redirect("/dashboard")
+    return render_template("payment.html", amount=total)
 
-    output = []
-    output.append("🤖 Robot Activated...\n")
 
-    for item in cart:
-        output.append(f"➡️ Moving to {item['name']} location")
-        output.append(f"🛒 Picking item: {item['name']}")
+# ---------------- CREATE PAYMENT ----------------
+@app.route("/create_payment", methods=["POST"])
+def create_payment():
+    key = os.environ.get("RAZORPAY_KEY_ID")
+    secret = os.environ.get("RAZORPAY_SECRET")
 
-        if item["fragile"]:
-            output.append("🤏 Using SOFT grip (fragile)")
-        else:
-            output.append("💪 Using STRONG grip")
+    client = razorpay.Client(auth=(key, secret))
 
-        output.append("✅ Item picked\n")
+    amount = int(request.form["amount"]) * 100
 
-    output.append("📦 Packing items...")
-    output.append("🚚 Moving to delivery zone")
-    output.append("✅ Order ready!")
+    order = client.order.create({
+        "amount": amount,
+        "currency": "INR"
+    })
 
-    session.pop("cart", None)
+    return jsonify({
+        "order_id": order["id"],
+        "key": key,
+        "amount": amount
+    })
 
-    return render_template("result.html", output=output)
+
+# ---------------- PAYMENT SUCCESS ----------------
+@app.route("/payment_success")
+def payment_success():
+
+    items = session.get("cart", [])
+
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO orders (user_email, items, status) VALUES (%s,%s,%s)",
+        (session["user"], json.dumps(items), "processing")
+    )
+
+    conn.commit()
+
+    # 🤖 ROBOT EXECUTION
+    result = process_order(items)
+
+    cur.execute(
+        "UPDATE orders SET status=%s WHERE user_email=%s",
+        ("completed", session["user"])
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    session["cart"] = []   # clear cart
+
+    return render_template("result.html", result=result)
 
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    return redirect("/")
 
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    create_tables()
+    app.run(host="0.0.0.0", port=10000)
