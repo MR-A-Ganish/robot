@@ -9,67 +9,85 @@ from robot.main import process_order
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# Razorpay config
+# Razorpay
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_SECRET = os.environ.get("RAZORPAY_SECRET")
-
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
 create_tables()
 
+
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
+    error = None
+    form = "login"
+
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
 
-        conn = connect_db()
-        cur = conn.cursor()
+        try:
+            conn = connect_db()
+            cur = conn.cursor()
 
-        cur.execute("SELECT * FROM users WHERE email=%s", (email,))
-        user = cur.fetchone()
+            cur.execute("SELECT * FROM users WHERE email=%s", (email,))
+            user = cur.fetchone()
 
-        cur.close()
-        conn.close()
+            cur.close()
+            conn.close()
 
-        if user and check_password_hash(user[2], password):
-            session["user"] = email
-            return redirect("/dashboard")
-        else:
-            return "Invalid email or password ❌"
+            if user and check_password_hash(user[2], password):
+                session["user"] = email
+                return redirect("/dashboard")
+            else:
+                error = "Invalid email or password ❌"
 
-    return render_template("login.html")
+        except Exception as e:
+            print("Login Error:", e)
+            error = "Server error ❌"
+
+    return render_template("login.html", error=error, form=form)
 
 
 # ---------------- SIGNUP ----------------
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["POST"])
 def signup():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+    error = None
+    form = "signup"
 
+    email = request.form["email"]
+    password = request.form["password"]
+
+    try:
         conn = connect_db()
         cur = conn.cursor()
 
         cur.execute("SELECT * FROM users WHERE email=%s", (email,))
         if cur.fetchone():
-            return "User already exists ❌"
+            error = "User already exists ❌"
+        else:
+            hashed = generate_password_hash(password)
 
-        hashed = generate_password_hash(password)
+            cur.execute(
+                "INSERT INTO users (email, password) VALUES (%s, %s)",
+                (email, hashed)
+            )
 
-        cur.execute(
-            "INSERT INTO users (email, password) VALUES (%s, %s)",
-            (email, hashed)
-        )
+            conn.commit()
+            cur.close()
+            conn.close()
 
-        conn.commit()
+            return redirect("/")
+
         cur.close()
         conn.close()
 
-        return redirect("/")
+    except Exception as e:
+        print("Signup Error:", e)
+        error = "Signup failed ❌"
 
-    return render_template("signup.html")
+    return render_template("login.html", error=error, form=form)
 
 
 # ---------------- DASHBOARD ----------------
@@ -145,7 +163,6 @@ def place_order():
 
     conn.commit()
 
-    # 🤖 Robot processing
     result = process_order(json.loads(items))
 
     cur.execute(
@@ -157,35 +174,7 @@ def place_order():
     cur.close()
     conn.close()
 
-    # 🔥 SHOW RESULT PAGE
     return render_template("result.html", result=result)
-
-
-# ---------------- INIT PRODUCTS ----------------
-@app.route("/init_products")
-def init_products():
-    conn = connect_db()
-    cur = conn.cursor()
-
-    products = [
-        ("Milk", 30, "https://cdn-icons-png.flaticon.com/512/1046/1046784.png", 500, False),
-        ("Eggs", 60, "https://cdn-icons-png.flaticon.com/512/1046/1046857.png", 200, True),
-        ("Rice", 100, "https://cdn-icons-png.flaticon.com/512/3075/3075977.png", 1000, False),
-        ("Bread", 40, "https://cdn-icons-png.flaticon.com/512/1046/1046751.png", 300, False),
-        ("Juice", 80, "https://cdn-icons-png.flaticon.com/512/3050/3050156.png", 400, False)
-    ]
-
-    for p in products:
-        cur.execute(
-            "INSERT INTO products (name, price, image, weight, fragile) VALUES (%s, %s, %s, %s, %s)",
-            p
-        )
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return "Products Added ✅"
 
 
 # ---------------- LOGOUT ----------------
@@ -195,5 +184,6 @@ def logout():
     return redirect("/")
 
 
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

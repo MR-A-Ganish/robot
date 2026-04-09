@@ -2,30 +2,22 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env
 load_dotenv()
 
-
-# -------------------------------
-# CONNECT DATABASE
-# -------------------------------
 def connect_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
 
     if not DATABASE_URL:
-        raise Exception("❌ DATABASE_URL not found. Check your .env file")
+        raise Exception("❌ DATABASE_URL not found")
 
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 
-# -------------------------------
-# CREATE TABLES
-# -------------------------------
 def create_tables():
     conn = connect_db()
     cur = conn.cursor()
 
-    # USERS TABLE
+    # USERS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -34,7 +26,7 @@ def create_tables():
     )
     """)
 
-    # PRODUCTS TABLE (WITH MEMORY SYSTEM 🔥)
+    # PRODUCTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -49,7 +41,7 @@ def create_tables():
     )
     """)
 
-    # ORDERS TABLE
+    # ORDERS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
