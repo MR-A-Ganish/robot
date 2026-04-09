@@ -1,47 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Signup</title>
-<style>
-body {
-    background: linear-gradient(270deg,#ff416c,#ff4b2b,#ff6a00);
-    display:flex;justify-content:center;align-items:center;height:100vh;
-    font-family:sans-serif;
-}
+    <title>Signup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-.card {
-    background: rgba(255,255,255,0.2);
-    padding:30px;border-radius:15px;
-}
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-input,button {
-    width:100%;padding:10px;margin:10px 0;
-}
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+        }
 
-.error {
-    background:red;color:white;padding:8px;border-radius:8px;
-}
-</style>
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+            color: #2575fc;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="card">
-<h2>Signup 🚀</h2>
+    <h2>Create Account</h2>
 
-<form method="POST">
-<input name="email" placeholder="Email" required>
-<input name="password" type="password" placeholder="Password" required>
+    <form method="POST">
+        <input type="email" name="email" placeholder="Enter Email" required>
+        <input type="password" name="password" placeholder="Enter Password" required>
+        <button type="submit">Sign Up</button>
+    </form>
 
-<button>Signup</button>
-
-{% if error %}
-<div class="error">{{error}}</div>
-{% endif %}
-
-<p>Already user? <a href="/">Login</a></p>
-</form>
-
+    <a href="/">Already have an account? Login</a>
 </div>
 
 </body>

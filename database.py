@@ -1,33 +1,61 @@
 import psycopg2
-import sqlite3
 import os
 from dotenv import load_dotenv
 
+# Load environment variables from .env
 load_dotenv()
 
+
+# -------------------------------
+# CONNECT DATABASE
+# -------------------------------
 def connect_db():
     DATABASE_URL = os.environ.get("DATABASE_URL")
 
-    # Production (Render)
-    if DATABASE_URL:
-        return psycopg2.connect(DATABASE_URL, sslmode='require')
+    if not DATABASE_URL:
+        raise Exception("❌ DATABASE_URL not found. Check your .env file")
 
-    # Local (SQLite)
-    return sqlite3.connect("app.db")
+    return psycopg2.connect(DATABASE_URL)
 
 
+# -------------------------------
+# CREATE TABLES
+# -------------------------------
 def create_tables():
     conn = connect_db()
     cur = conn.cursor()
 
-    is_sqlite = "sqlite3" in str(type(conn))
-    id_type = "INTEGER PRIMARY KEY AUTOINCREMENT" if is_sqlite else "SERIAL PRIMARY KEY"
-
-    cur.execute(f"""
+    # USERS TABLE
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id {id_type},
+        id SERIAL PRIMARY KEY,
         email TEXT UNIQUE,
         password TEXT
+    )
+    """)
+
+    # PRODUCTS TABLE (WITH MEMORY SYSTEM 🔥)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        price INTEGER,
+        image TEXT,
+        weight INTEGER,
+        fragile BOOLEAN,
+        aisle TEXT,
+        shelf TEXT,
+        position INTEGER
+    )
+    """)
+
+    # ORDERS TABLE
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        user_email TEXT,
+        items TEXT,
+        status TEXT
     )
     """)
 
