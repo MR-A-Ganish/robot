@@ -24,6 +24,7 @@ body {
 /* 🤖 ROBOT */
 .robot {
     width:180px;
+    transition:0.4s;
 }
 
 /* CARD */
@@ -108,11 +109,10 @@ button {
     animation: shake 0.4s;
 }
 
-/* 🤖 TURN AWAY */
+/* 🙈 TURN AWAY */
 .turn-away {
     transform: rotate(-25deg) translateX(-10px);
     transform-origin: center;
-    transition: 0.4s ease;
 }
 </style>
 </head>
@@ -145,7 +145,7 @@ button {
 <h2>Login 🚀</h2>
 
 <input type="email" name="email" placeholder="Email" required>
-<input type="password" name="password" placeholder="Password" required>
+<input type="password" id="password" name="password" placeholder="Password" required>
 
 <button>Login</button>
 
@@ -156,7 +156,6 @@ button {
 
 <div class="toggle" onclick="showSignup()">New user? Sign up</div>
 </form>
-
 
 <!-- SIGNUP -->
 <form id="signupForm" method="POST" action="/signup" style="{% if form!='signup' %}display:none{% endif %}">
@@ -170,88 +169,73 @@ button {
 <div class="toggle" onclick="showLogin()">Already user?</div>
 </form>
 
-
+<!-- ERROR -->
 {% if error %}
 <div class="error">{{error}}</div>
 {% endif %}
 
 </div>
-
 </div>
 
 <script>
-window.onload = function () {
 
-    const pupil1 = document.getElementById("pupil1");
-    const pupil2 = document.getElementById("pupil2");
-    const face = document.getElementById("robotFace");
-    const robot = document.querySelector(".robot");
+const pupil1 = document.getElementById("pupil1");
+const pupil2 = document.getElementById("pupil2");
+const face = document.getElementById("robotFace");
+const robot = document.querySelector(".robot");
+const passwordInput = document.getElementById("password");
 
-    const passwordInputs = document.querySelectorAll("input[type='password']");
+let typingPassword = false;
 
-    let isTypingPassword = false;
+/* 👀 FOLLOW CURSOR */
+document.addEventListener("mousemove", (e) => {
 
-    /* 👀 FOLLOW CURSOR */
-    document.addEventListener("mousemove", (e) => {
+    if (typingPassword) return;
 
-        if (isTypingPassword) return;
+    let x = (e.clientX / window.innerWidth - 0.5) * 12;
+    let y = (e.clientY / window.innerHeight - 0.5) * 12;
 
-        let x = (e.clientX / window.innerWidth - 0.5) * 12;
-        let y = (e.clientY / window.innerHeight - 0.5) * 12;
+    pupil1.setAttribute("transform", `translate(${x}, ${y})`);
+    pupil2.setAttribute("transform", `translate(${x}, ${y})`);
+});
 
-        pupil1.setAttribute("transform", `translate(${x}, ${y})`);
-        pupil2.setAttribute("transform", `translate(${x}, ${y})`);
-    });
+/* 🙈 PASSWORD MODE (STAYS CLOSED WHILE TYPING) */
+passwordInput.addEventListener("focus", () => {
+    typingPassword = true;
+    pupil1.style.display = "none";
+    pupil2.style.display = "none";
+    face.classList.add("turn-away");
+});
 
-    /* 🙈 PASSWORD TYPING */
-    passwordInputs.forEach(input => {
+passwordInput.addEventListener("blur", () => {
+    typingPassword = false;
+    pupil1.style.display = "block";
+    pupil2.style.display = "block";
+    face.classList.remove("turn-away");
+});
 
-        input.addEventListener("input", () => {
-            isTypingPassword = true;
+/* 👁 BLINK */
+setInterval(() => {
 
-            pupil1.style.display = "none";
-            pupil2.style.display = "none";
+    if (typingPassword) return;
 
-            face.classList.add("turn-away");
-        });
+    pupil1.style.display = "none";
+    pupil2.style.display = "none";
 
-        input.addEventListener("blur", () => {
-            isTypingPassword = false;
-
+    setTimeout(() => {
+        if (!typingPassword) {
             pupil1.style.display = "block";
             pupil2.style.display = "block";
+        }
+    }, 150);
 
-            face.classList.remove("turn-away");
-        });
+}, 3000);
 
-    });
-
-    /* 👁 BLINK */
-    setInterval(() => {
-
-        if (isTypingPassword) return;
-
-        pupil1.style.display = "none";
-        pupil2.style.display = "none";
-
-        setTimeout(() => {
-            if (!isTypingPassword) {
-                pupil1.style.display = "block";
-                pupil2.style.display = "block";
-            }
-        }, 150);
-
-    }, 3000);
-
-    /* 😢 SHAKE ON ERROR */
-    {% if error %}
-        robot.classList.add("shake");
-
-        setTimeout(() => {
-            robot.classList.remove("shake");
-        }, 500);
-    {% endif %}
-};
+/* 😢 SHAKE ON ERROR */
+{% if error %}
+robot.classList.add("shake");
+setTimeout(()=>robot.classList.remove("shake"),500);
+{% endif %}
 
 /* 🔄 LOADER */
 function showLoader() {
@@ -268,6 +252,7 @@ function showLogin(){
     document.getElementById("loginForm").style.display="block";
     document.getElementById("signupForm").style.display="none";
 }
+
 </script>
 
 </body>

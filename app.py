@@ -14,6 +14,7 @@ def home():
 # ---------------- LOGIN ----------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
@@ -32,14 +33,19 @@ def login():
             session["user"] = email
             return redirect("/dashboard")
         else:
-            return "❌ Invalid credentials"
+            return render_template(
+                "login.html",
+                error="❌ Invalid credentials",
+                form="login"
+            )
 
-    return render_template("login.html")
+    return render_template("login.html", form="login")
 
 
 # ---------------- SIGNUP ----------------
 @app.route("/signup", methods=["POST"])
 def signup():
+
     email = request.form["email"]
     password = request.form["password"]
 
@@ -47,21 +53,34 @@ def signup():
     cur = conn.cursor()
 
     try:
-        cur.execute("INSERT INTO users (email, password) VALUES (%s, %s)",
-                    (email, password))
+        cur.execute(
+            "INSERT INTO users (email, password) VALUES (%s, %s)",
+            (email, password)
+        )
         conn.commit()
+
+        return render_template(
+            "login.html",
+            error="✅ Account created! Please login",
+            form="login"
+        )
+
     except:
-        return "User already exists ❌"
+        return render_template(
+            "login.html",
+            error="⚠️ User already exists",
+            form="signup"
+        )
 
-    cur.close()
-    conn.close()
-
-    return redirect("/login")
+    finally:
+        cur.close()
+        conn.close()
 
 
 # ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
+
     if "user" not in session:
         return redirect("/login")
 
@@ -100,11 +119,11 @@ def add_to_cart(product_id):
     conn.close()
 
     if not p:
-        return "Product not found"
+        return redirect("/dashboard")
 
     cart = session.get("cart", [])
 
-    # if exists → increase qty
+    # already exists → increase qty
     for item in cart:
         if item["id"] == p[0]:
             item["qty"] += 1
@@ -129,19 +148,31 @@ def add_to_cart(product_id):
 # ---------------- CART ----------------
 @app.route("/cart")
 def cart():
+
+    if "user" not in session:
+        return redirect("/login")
+
     cart = session.get("cart", [])
 
     total = sum(item["price"] * item["qty"] for item in cart)
     count = sum(item["qty"] for item in cart)
 
-    return render_template("cart.html", cart=cart, total=total, count=count)
+    return render_template(
+        "cart.html",
+        cart=cart,
+        total=total,
+        count=count
+    )
 
 
 # ---------------- INCREASE ----------------
 @app.route("/increase/<int:index>")
 def increase(index):
     cart = session.get("cart", [])
-    cart[index]["qty"] += 1
+
+    if index < len(cart):
+        cart[index]["qty"] += 1
+
     session["cart"] = cart
     return redirect("/cart")
 
@@ -151,10 +182,11 @@ def increase(index):
 def decrease(index):
     cart = session.get("cart", [])
 
-    if cart[index]["qty"] > 1:
-        cart[index]["qty"] -= 1
-    else:
-        cart.pop(index)
+    if index < len(cart):
+        if cart[index]["qty"] > 1:
+            cart[index]["qty"] -= 1
+        else:
+            cart.pop(index)
 
     session["cart"] = cart
     return redirect("/cart")
@@ -163,6 +195,7 @@ def decrease(index):
 # ---------------- PAYMENT ----------------
 @app.route("/payment", methods=["GET", "POST"])
 def payment():
+
     if "cart" not in session or len(session["cart"]) == 0:
         return redirect("/dashboard")
 
@@ -175,12 +208,12 @@ def payment():
 # ---------------- RESULT (ROBOT OUTPUT) ----------------
 @app.route("/result")
 def result():
+
     cart = session.get("cart", [])
 
     if not cart:
         return redirect("/dashboard")
 
-    # 🤖 ROBOT LOGIC
     output = []
     output.append("🤖 Robot Activated...\n")
 
@@ -199,6 +232,7 @@ def result():
     output.append("🚚 Moving to delivery zone")
     output.append("✅ Order ready!")
 
+    # clear cart after order
     session.pop("cart", None)
 
     return render_template("result.html", output=output)
