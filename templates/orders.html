@@ -1,0 +1,9 @@
+<h2>Your Orders 📦</h2>
+
+{% for o in orders %}
+<div>
+    <p>Order ID: {{o[0]}}</p>
+    <p>Status: {{o[3]}}</p>
+</div>
+<hr>
+{% endfor %}
