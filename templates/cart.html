@@ -5,10 +5,10 @@
 
 <style>
 body {
-    font-family: 'Segoe UI';
-    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    background:#0f2027;
     color:white;
-    padding:30px;
+    font-family:Poppins;
+    padding:20px;
 }
 
 .container {
@@ -17,42 +17,36 @@ body {
 }
 
 .card {
-    background: rgba(255,255,255,0.1);
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:15px;
     display:flex;
     align-items:center;
     gap:15px;
+    background:rgba(255,255,255,0.08);
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:15px;
 }
 
-img {
-    width:60px;
-    height:60px;
+.card img {
+    width:70px;
+    height:70px;
     border-radius:10px;
 }
 
-.qty {
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-button {
-    padding:6px 10px;
+.qty button {
+    padding:5px 10px;
     border:none;
-    border-radius:6px;
-    cursor:pointer;
+    border-radius:8px;
+    background:#00f2fe;
 }
 
 .checkout {
     width:100%;
     padding:15px;
-    background:white;
-    color:#2a5298;
-    font-size:18px;
+    background:#00f2fe;
+    color:black;
     font-weight:bold;
-    margin-top:20px;
+    border:none;
+    border-radius:20px;
 }
 </style>
 </head>
@@ -63,42 +57,30 @@ button {
 
 <h2>🛒 Your Cart</h2>
 
-{% if cart %}
+{% for item in cart %}
+<div class="card">
 
-    {% for item in cart %}
-    <div class="card">
+    <img src="{{item.image}}">
 
-        <img src="{{item.image}}">
-
-        <div style="flex:1;">
-            <h3>{{item.name}}</h3>
-            <p>₹{{item.price}}</p>
-        </div>
-
-        <div class="qty">
-            <a href="/decrease/{{loop.index0}}">
-                <button>-</button>
-            </a>
-
-            <span>{{item.qty}}</span>
-
-            <a href="/increase/{{loop.index0}}">
-                <button>+</button>
-            </a>
-        </div>
-
+    <div style="flex:1;">
+        <h3>{{item.name}}</h3>
+        <p>₹{{item.price}} x {{item.qty}}</p>
     </div>
-    {% endfor %}
 
-    <h2>Total: ₹{{total}}</h2>
+    <div class="qty">
+        <a href="/decrease/{{loop.index0}}"><button>-</button></a>
+        {{item.qty}}
+        <a href="/increase/{{loop.index0}}"><button>+</button></a>
+    </div>
 
-    <a href="/payment">
-        <button class="checkout">Proceed to Payment 💳</button>
-    </a>
+</div>
+{% endfor %}
 
-{% else %}
-    <h3>Your cart is empty 😢</h3>
-{% endif %}
+<h2>Total: ₹{{total}}</h2>
+
+<a href="/payment">
+<button class="checkout">Proceed to Payment 💳</button>
+</a>
 
 </div>
 

@@ -5,19 +5,19 @@
 
 <style>
 body {
-    font-family: 'Segoe UI';
-    background: linear-gradient(135deg,#667eea,#764ba2);
+    background: linear-gradient(135deg,#1d2671,#c33764);
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
     color:white;
+    font-family:Poppins;
 }
 
 .card {
-    background: rgba(255,255,255,0.15);
-    padding:30px;
-    border-radius:15px;
+    background:rgba(255,255,255,0.1);
+    padding:40px;
+    border-radius:20px;
     text-align:center;
     width:300px;
 }
@@ -25,13 +25,10 @@ body {
 button {
     width:100%;
     padding:12px;
-    background:white;
-    color:#764ba2;
+    background:#00f2fe;
     border:none;
-    border-radius:8px;
+    border-radius:20px;
     font-weight:bold;
-    cursor:pointer;
-    margin-top:15px;
 }
 </style>
 </head>
@@ -41,7 +38,6 @@ button {
 <div class="card">
 
 <h2>💳 Payment</h2>
-<p>Total Amount</p>
 <h1>₹{{amount}}</h1>
 
 <button onclick="pay()">Pay Now</button>
@@ -60,20 +56,7 @@ fetch("/create_payment", {
 })
 .then(res=>res.json())
 .then(data=>{
-
-    const options = {
-        key: data.key,
-        amount: data.amount,
-        currency: "INR",
-        name: "QuickCart",
-        order_id: data.order_id,
-
-        handler: function(){
-            window.location.href = "/payment_success";
-        }
-    };
-
-    const rzp = new Razorpay(options);
+    const rzp = new Razorpay(data);
     rzp.open();
 });
 }
