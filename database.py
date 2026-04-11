@@ -1,7 +1,7 @@
 import psycopg2, os
 
 def connect_db():
-    return psycopg2.connect(os.environ.get("DATABASE_URL"), sslmode="require")
+    return psycopg2.connect(os.getenv("DATABASE_URL"), sslmode="require")
 
 def create_tables():
     conn=connect_db()
@@ -20,7 +20,12 @@ def create_tables():
         id SERIAL PRIMARY KEY,
         name TEXT,
         price INTEGER,
-        image TEXT
+        image TEXT,
+        weight INTEGER,
+        fragile BOOLEAN,
+        aisle TEXT,
+        shelf TEXT,
+        position INTEGER
     )
     """)
 

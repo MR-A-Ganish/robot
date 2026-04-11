@@ -7,7 +7,7 @@ from database import connect_db, create_tables
 from werkzeug.security import generate_password_hash, check_password_hash
 from robot.main import process_order
 
-# 🔥 LOAD ENV
+# ---------------- LOAD ENV ----------------
 load_dotenv()
 
 app = Flask(__name__)
@@ -127,7 +127,6 @@ def add_to_cart(product_id):
         })
 
     session["cart"] = cart
-
     return redirect("/cart")
 
 # ---------------- CART ----------------
@@ -184,6 +183,9 @@ def create_payment():
         key = os.getenv("RAZORPAY_KEY_ID")
         secret = os.getenv("RAZORPAY_SECRET")
 
+        print("KEY:", key)       # DEBUG
+        print("SECRET:", secret) # DEBUG
+
         if not key or not secret:
             return jsonify({"error": "Razorpay keys missing ❌"})
 
@@ -219,7 +221,6 @@ def payment_success():
     conn = connect_db()
     cur = conn.cursor()
 
-    # INSERT ORDER
     cur.execute(
         "INSERT INTO orders (user_email, items, status) VALUES (%s,%s,%s) RETURNING id",
         (session["user"], json.dumps(items), "processing")
@@ -227,10 +228,9 @@ def payment_success():
 
     order_id = cur.fetchone()[0]
 
-    # 🤖 ROBOT PROCESS
+    # 🤖 Robot process
     result = process_order(items)
 
-    # UPDATE STATUS
     cur.execute(
         "UPDATE orders SET status=%s WHERE id=%s",
         ("completed", order_id)

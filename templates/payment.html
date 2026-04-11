@@ -3,45 +3,106 @@
 <head>
 <title>Payment</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body {
     background:#f8f9fa;
-    font-family:Arial;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+    font-family: 'Segoe UI', sans-serif;
+    margin:0;
+}
+
+.header {
+    background:#fff;
+    padding:15px;
+    text-align:center;
+    font-weight:bold;
+    font-size:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.container {
+    padding:20px;
 }
 
 .card {
     background:white;
-    padding:30px;
+    padding:20px;
     border-radius:15px;
     text-align:center;
-    width:300px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.05);
 }
 
+.amount {
+    font-size:28px;
+    font-weight:bold;
+    margin:15px 0;
+}
+
+/* BUTTON */
 button {
+    width:100%;
+    padding:14px;
     background:#0c831f;
     color:white;
     border:none;
-    padding:12px;
     border-radius:10px;
-    width:100%;
     font-size:16px;
+    font-weight:bold;
     cursor:pointer;
+    margin-top:10px;
+}
+
+/* UPI APPS */
+.upi-icons {
+    display:flex;
+    justify-content:space-around;
+    margin:15px 0;
+}
+
+.upi-icons img {
+    width:60px;
+}
+
+/* QR */
+.qr-box {
+    margin-top:15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-    <h2>Pay ₹{{amount}}</h2>
-    <button onclick="pay()">Pay Now</button>
+<div class="header">
+    💳 Payment
 </div>
 
-<!-- Razorpay Script -->
+<div class="container">
+
+    <div class="card">
+
+        <p>Total Amount</p>
+        <div class="amount">₹{{amount}}</div>
+
+        <h4>Pay using UPI Apps</h4>
+
+        <div class="upi-icons">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Google_Pay_%28GPay%29_Logo.svg/512px-Google_Pay_%28GPay%29_Logo.svg.png">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/PhonePe_Logo.svg">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Paytm_logo.png/512px-Paytm_logo.png">
+        </div>
+
+        <button onclick="pay()">Pay via UPI 💳</button>
+
+        <div class="qr-box">
+            <h4>Or Scan QR Code</h4>
+            <img id="qr" width="200">
+        </div>
+
+    </div>
+
+</div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
@@ -49,18 +110,14 @@ function pay(){
 
 fetch("/create_payment",{
     method:"POST",
-    headers:{
-        "Content-Type":"application/x-www-form-urlencoded"
-    },
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},
     body:"amount={{amount}}"
 })
 .then(res=>res.json())
 .then(data=>{
 
-    console.log(data);  // DEBUG
-
     if(data.error){
-        alert("Error: " + data.error);
+        alert(data.error);
         return;
     }
 
@@ -69,16 +126,19 @@ fetch("/create_payment",{
         amount: data.amount,
         currency: "INR",
         name: "QuickCart",
-        description: "Order Payment",
+        description: "UPI Payment",
         order_id: data.order_id,
 
-        handler: function(response){
-            alert("Payment Successful ✅");
-            window.location.href = "/payment_success";
+        method: {
+            upi: true
+        },
+
+        handler: function(){
+            window.location.href="/payment_success";
         },
 
         theme: {
-            color: "#0c831f"
+            color:"#0c831f"
         }
     };
 
@@ -86,6 +146,10 @@ fetch("/create_payment",{
     rzp.open();
 });
 }
+
+/* GENERATE QR CODE */
+document.getElementById("qr").src =
+"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=test@upi&pn=QuickCart&am={{amount}}";
 </script>
 
 </body>
