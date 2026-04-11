@@ -1,90 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>QuickCart 🛍️</title>
+<title>QuickCart</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;600&display=swap" rel="stylesheet">
 
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family:Poppins; }
+* { margin:0; padding:0; box-sizing:border-box; font-family:Inter; }
 
 body {
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    color:white;
-    padding:20px;
+    background:#f8f9fa;
+    color:#111;
 }
 
-.top-bar {
+/* HEADER */
+.header {
+    background:#fff;
+    padding:15px;
+    position:sticky;
+    top:0;
+    z-index:100;
+    box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.top {
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:30px;
 }
 
-.cart-btn {
+.logo {
+    font-weight:600;
+    font-size:20px;
+    color:#0c831f;
+}
+
+/* SEARCH */
+.search {
+    margin-top:10px;
+}
+
+.search input {
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:none;
+    background:#f1f3f4;
+}
+
+/* CART */
+.cart {
     position:relative;
 }
 
-.cart-btn button {
-    padding:10px 20px;
+.cart button {
+    background:#0c831f;
+    color:white;
     border:none;
-    border-radius:30px;
-    background:#00f2fe;
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
+    padding:10px 15px;
+    border-radius:10px;
 }
 
 .badge {
     position:absolute;
-    top:-8px;
-    right:-8px;
+    top:-5px;
+    right:-5px;
     background:red;
-    padding:5px 10px;
-    border-radius:50%;
+    color:white;
     font-size:12px;
+    padding:3px 7px;
+    border-radius:50%;
 }
 
+/* GRID */
 .grid {
+    padding:15px;
     display:grid;
-    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-    gap:25px;
+    grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+    gap:15px;
 }
 
+/* CARD */
 .card {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(15px);
-    border-radius:20px;
-    padding:20px;
-    text-align:center;
-    transition:0.3s;
-}
-
-.card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+    background:white;
+    border-radius:15px;
+    padding:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
 }
 
 .card img {
     width:100%;
-    height:150px;
+    height:100px;
     object-fit:cover;
-    border-radius:12px;
+    border-radius:10px;
+}
+
+.name {
+    font-size:14px;
+    margin:5px 0;
 }
 
 .price {
-    font-size:18px;
-    margin:10px 0;
-    color:#00f2fe;
+    font-weight:600;
 }
 
-button.add {
-    padding:10px;
+.add {
+    width:100%;
+    margin-top:8px;
+    background:#0c831f;
+    color:white;
     border:none;
-    border-radius:20px;
-    background:#00f2fe;
-    color:black;
-    font-weight:bold;
+    padding:8px;
+    border-radius:10px;
     cursor:pointer;
 }
 </style>
@@ -92,20 +119,28 @@ button.add {
 
 <body>
 
-<div class="top-bar">
-    <h2>🛍️ QuickCart</h2>
+<div class="header">
 
-    <div class="cart-btn">
-        <a href="/cart">
-            <button>🛒 Cart</button>
-        </a>
+    <div class="top">
+        <div class="logo">⚡ QuickCart</div>
 
-        {% if session.cart %}
-        <span class="badge">
-            {{ session.cart | sum(attribute='qty') }}
-        </span>
-        {% endif %}
+        <div class="cart">
+            <a href="/cart">
+                <button>🛒</button>
+            </a>
+
+            {% if session.cart %}
+            <span class="badge">
+                {{ session.cart | sum(attribute='qty') }}
+            </span>
+            {% endif %}
+        </div>
     </div>
+
+    <div class="search">
+        <input type="text" placeholder="Search groceries... 🔍">
+    </div>
+
 </div>
 
 <div class="grid">
@@ -115,11 +150,11 @@ button.add {
 
     <img src="{{product.img}}">
 
-    <h3>{{product.name}}</h3>
-    <p class="price">₹{{product.price}}</p>
+    <div class="name">{{product.name}}</div>
+    <div class="price">₹{{product.price}}</div>
 
     <a href="/add_to_cart/{{product.id}}">
-        <button class="add">Add to Cart</button>
+        <button class="add">ADD</button>
     </a>
 
 </div>

@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Payment 💳</title>
+<title>Payment</title>
 
 <style>
 body {
-    background: linear-gradient(135deg,#1d2671,#c33764);
+    background:#f8f9fa;
+    font-family:Inter;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
-    color:white;
-    font-family:Poppins;
 }
 
 .card {
-    background:rgba(255,255,255,0.1);
-    padding:40px;
-    border-radius:20px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
     text-align:center;
-    width:300px;
 }
 
 button {
-    width:100%;
-    padding:12px;
-    background:#00f2fe;
+    background:#0c831f;
+    color:white;
     border:none;
-    border-radius:20px;
-    font-weight:bold;
+    padding:12px;
+    border-radius:10px;
+    width:100%;
 }
 </style>
 </head>
@@ -36,27 +34,22 @@ button {
 <body>
 
 <div class="card">
-
-<h2>💳 Payment</h2>
-<h1>₹{{amount}}</h1>
-
-<button onclick="pay()">Pay Now</button>
-
+    <h2>Pay ₹{{amount}}</h2>
+    <button onclick="pay()">Pay Now</button>
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
 function pay(){
-
-fetch("/create_payment", {
-    method:"POST",
-    headers:{"Content-Type":"application/x-www-form-urlencoded"},
-    body:"amount={{amount}}"
+fetch("/create_payment",{
+method:"POST",
+headers:{"Content-Type":"application/x-www-form-urlencoded"},
+body:"amount={{amount}}"
 })
 .then(res=>res.json())
 .then(data=>{
-    const rzp = new Razorpay(data);
+    const rzp=new Razorpay(data);
     rzp.open();
 });
 }

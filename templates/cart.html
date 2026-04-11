@@ -1,52 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Cart 🛒</title>
+<title>Cart</title>
 
 <style>
 body {
-    background:#0f2027;
-    color:white;
-    font-family:Poppins;
-    padding:20px;
+    background:#f8f9fa;
+    font-family:Inter;
 }
 
 .container {
-    max-width:700px;
-    margin:auto;
+    padding:15px;
 }
 
 .card {
     display:flex;
     align-items:center;
-    gap:15px;
-    background:rgba(255,255,255,0.08);
-    padding:15px;
-    border-radius:15px;
-    margin-bottom:15px;
+    gap:10px;
+    background:white;
+    padding:10px;
+    border-radius:12px;
+    margin-bottom:10px;
 }
 
 .card img {
-    width:70px;
-    height:70px;
+    width:60px;
+    height:60px;
     border-radius:10px;
 }
 
+.qty {
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
 .qty button {
-    padding:5px 10px;
+    background:#0c831f;
+    color:white;
     border:none;
-    border-radius:8px;
-    background:#00f2fe;
+    padding:5px 10px;
+    border-radius:6px;
+}
+
+/* BOTTOM BAR */
+.bottom {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:white;
+    padding:15px;
+    box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 }
 
 .checkout {
     width:100%;
-    padding:15px;
-    background:#00f2fe;
-    color:black;
-    font-weight:bold;
+    padding:12px;
+    background:#0c831f;
+    color:white;
     border:none;
-    border-radius:20px;
+    border-radius:10px;
 }
 </style>
 </head>
@@ -55,7 +69,7 @@ body {
 
 <div class="container">
 
-<h2>🛒 Your Cart</h2>
+<h3>Your Cart</h3>
 
 {% for item in cart %}
 <div class="card">
@@ -63,8 +77,8 @@ body {
     <img src="{{item.image}}">
 
     <div style="flex:1;">
-        <h3>{{item.name}}</h3>
-        <p>₹{{item.price}} x {{item.qty}}</p>
+        {{item.name}} <br>
+        ₹{{item.price}} x {{item.qty}}
     </div>
 
     <div class="qty">
@@ -76,12 +90,13 @@ body {
 </div>
 {% endfor %}
 
-<h2>Total: ₹{{total}}</h2>
+</div>
 
-<a href="/payment">
-<button class="checkout">Proceed to Payment 💳</button>
-</a>
-
+<div class="bottom">
+    <h3>Total: ₹{{total}}</h3>
+    <a href="/payment">
+        <button class="checkout">Proceed to Pay</button>
+    </a>
 </div>
 
 </body>
