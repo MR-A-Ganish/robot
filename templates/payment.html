@@ -39,7 +39,6 @@ body {
     margin:15px 0;
 }
 
-/* BUTTON */
 button {
     width:100%;
     padding:14px;
@@ -53,7 +52,6 @@ button {
     margin-top:10px;
 }
 
-/* UPI APPS */
 .upi-icons {
     display:flex;
     justify-content:space-around;
@@ -64,9 +62,8 @@ button {
     width:60px;
 }
 
-/* QR */
 .qr-box {
-    margin-top:15px;
+    margin-top:20px;
 }
 </style>
 </head>
@@ -92,8 +89,10 @@ button {
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Paytm_logo.png/512px-Paytm_logo.png">
         </div>
 
-        <button onclick="pay()">Pay via UPI 💳</button>
+        <!-- RAZORPAY BUTTON -->
+        <button onclick="pay()">Pay via Razorpay 💳</button>
 
+        <!-- QR SECTION -->
         <div class="qr-box">
             <h4>Or Scan QR Code</h4>
             <img id="qr" width="200">
@@ -103,6 +102,7 @@ button {
 
 </div>
 
+<!-- Razorpay -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
@@ -129,10 +129,6 @@ fetch("/create_payment",{
         description: "UPI Payment",
         order_id: data.order_id,
 
-        method: {
-            upi: true
-        },
-
         handler: function(){
             window.location.href="/payment_success";
         },
@@ -147,9 +143,23 @@ fetch("/create_payment",{
 });
 }
 
-/* GENERATE QR CODE */
+/* ===========================
+   ✅ FIXED QR CODE GENERATION
+=========================== */
+
+// 🔥 CHANGE THIS TO YOUR REAL UPI ID
+const upi_id = "7200298871@upi";   // 👈 REPLACE
+const name = "Ganish";           // 👈 REPLACE
+
+const amount = "{{amount}}";
+
+// ✅ CORRECT UPI FORMAT
+const upi_url = `upi://pay?pa=${upi_id}&pn=${name}&am=${amount}&cu=INR`;
+
+// ✅ ENCODE URL (IMPORTANT)
 document.getElementById("qr").src =
-"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=7200298871@upi&pn=QuickCart&am={{amount}}";
+"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(upi_url);
+
 </script>
 
 </body>
