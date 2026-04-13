@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Checkout</title>
+
+<style>
+body {
+    font-family:'Segoe UI';
+    background:#f8f9fa;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card {
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    width:300px;
+}
+
+button {
+    background:#0c831f;
+    color:white;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    width:100%;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>🧾 Checkout</h2>
+
+    <p><b>Wallet:</b> ₹{{wallet}}</p>
+    <p><b>Total:</b> ₹{{total}}</p>
+
+    <a href="/place_order">
+        <button>Place Order 🤖</button>
+    </a>
+</div>
+
+</body>
+</html>

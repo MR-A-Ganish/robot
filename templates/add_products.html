@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Product</title>
+
+<style>
+body {
+    font-family:'Segoe UI';
+    background:#f8f9fa;
+    padding:20px;
+}
+
+form {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    max-width:400px;
+    margin:auto;
+}
+
+input, button {
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
+
+button {
+    background:#0c831f;
+    color:white;
+    border:none;
+}
+</style>
+</head>
+
+<body>
+
+<form method="POST">
+    <h2>Add Product</h2>
+
+    <input name="name" placeholder="Name" required>
+    <input name="price" placeholder="Price" required>
+    <input name="image" placeholder="Image URL">
+    <input name="aisle" placeholder="Aisle">
+    <input name="shelf" placeholder="Shelf">
+    <input name="position" placeholder="Position">
+    <input name="weight" placeholder="Weight">
+
+    Fragile <input type="checkbox" name="fragile">
+
+    <button>Add Product</button>
+</form>
+
+</body>
+</html>

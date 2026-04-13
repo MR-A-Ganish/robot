@@ -4,8 +4,8 @@ def connect_db():
     return psycopg2.connect(os.getenv("DATABASE_URL"), sslmode="require")
 
 def create_tables():
-    conn=connect_db()
-    cur=conn.cursor()
+    conn = connect_db()
+    cur = conn.cursor()
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
@@ -21,20 +21,11 @@ def create_tables():
         name TEXT,
         price INTEGER,
         image TEXT,
-        weight INTEGER,
-        fragile BOOLEAN,
         aisle TEXT,
         shelf TEXT,
-        position INTEGER
-    )
-    """)
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS orders(
-        id SERIAL PRIMARY KEY,
-        user_email TEXT,
-        items TEXT,
-        status TEXT
+        position INTEGER,
+        fragile BOOLEAN,
+        weight INTEGER
     )
     """)
 
