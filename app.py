@@ -51,14 +51,13 @@ def dashboard():
     return render_template("dashboard.html", products=products)
 
 
-# ---------------- UPDATE CART (SAFE) ----------------
+# ---------------- UPDATE CART ----------------
 @app.route("/update_cart/<int:product_id>/<action>")
 def update_cart(product_id, action):
 
     cart = session.get("cart", [])
     found = False
 
-    # Update existing item
     for item in cart:
         if item["id"] == product_id:
             found = True
@@ -74,7 +73,7 @@ def update_cart(product_id, action):
 
             break
 
-    # Add new item safely
+    # ADD NEW ITEM
     if not found and action == "increase":
 
         conn = connect_db()
@@ -93,7 +92,7 @@ def update_cart(product_id, action):
             "price": p[2],
             "image": p[3] if len(p) > 3 else "",
             "fragile": False,
-            "weight": 100,   # ✅ safe default
+            "weight": 100,
             "qty": 1
         })
 
@@ -120,7 +119,7 @@ def checkout():
     return render_template("checkout.html", total=total, wallet=wallet)
 
 
-# ---------------- PLACE ORDER (FIXED) ----------------
+# ---------------- PLACE ORDER ----------------
 @app.route("/place_order")
 def place_order():
 
@@ -135,7 +134,6 @@ def place_order():
     if wallet < total:
         return "❌ Not enough balance"
 
-    # deduct wallet
     session["wallet"] = wallet - total
 
     try:
@@ -182,6 +180,30 @@ def add_product():
     return render_template("add_product.html")
 
 
+# ---------------- FIX DATABASE ----------------
+@app.route("/fix_db")
+def fix_db():
+    conn = connect_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+    UPDATE products
+    SET 
+        aisle='A',
+        shelf='1',
+        position=1,
+        fragile=false,
+        weight=100
+    WHERE aisle IS NULL
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return "✅ Database Fixed!"
+
+
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
@@ -191,5 +213,5 @@ def logout():
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    create_tables()
+    create_tables()   # auto-create + fix columns
     app.run(debug=True)
