@@ -4,42 +4,112 @@
 <title>Cart</title>
 
 <style>
-body { font-family:'Segoe UI'; background:#f8f9fa; padding:20px; }
+body {
+    font-family: 'Segoe UI';
+    background: #f8f9fa;
+    padding: 20px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+}
 
 .card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.info {
+    flex: 1;
+}
+
+.qty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 button {
-    background:#0c831f;
-    color:white;
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    width:100%;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: #0c831f;
+    color: white;
+    cursor: pointer;
+}
+
+.remove {
+    background: red;
+}
+
+.checkout {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
+<div class="container">
+
 <h2>🛒 Your Cart</h2>
 
-{% for item in cart %}
-<div class="card">
-    {{item.name}} x {{item.qty}}  
-    <br> ₹{{item.price * item.qty}}
+<!-- 💰 Wallet -->
+<h3>💰 Wallet: ₹{{session.wallet}}</h3>
+
+{% if cart %}
+
+    {% for item in cart %}
+    <div class="card">
+
+        <div class="info">
+            <b>{{item.name}}</b><br>
+            ₹{{item.price}} × {{item.qty}} = ₹{{item.price * item.qty}}
+        </div>
+
+        <!-- ➕➖ Quantity -->
+        <div class="qty">
+
+            <a href="/update_cart/{{item.id}}/decrease">
+                <button>-</button>
+            </a>
+
+            <b>{{item.qty}}</b>
+
+            <a href="/update_cart/{{item.id}}/increase">
+                <button>+</button>
+            </a>
+
+        </div>
+
+        <!-- ❌ Remove -->
+        <a href="/update_cart/{{item.id}}/decrease">
+            <button class="remove">X</button>
+        </a>
+
+    </div>
+    {% endfor %}
+
+    <h2>Total: ₹{{total}}</h2>
+
+    <a href="/checkout">
+        <button class="checkout">🤖 Send to Robot</button>
+    </a>
+
+{% else %}
+    <h3>Your cart is empty 😢</h3>
+{% endif %}
+
 </div>
-{% endfor %}
-
-<h3>Total: ₹{{total}}</h3>
-
-<a href="/checkout">
-    <button>Proceed to Checkout</button>
-</a>
 
 </body>
 </html>
