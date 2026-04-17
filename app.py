@@ -9,6 +9,43 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 
+# ---------------- INIT DB SAFELY ----------------
+def init_db_safe():
+    conn = connect_db()
+    cur = conn.cursor()
+
+    # Ensure table exists
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        price INTEGER,
+        image TEXT
+    )
+    """)
+
+    # Add missing columns safely
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS aisle TEXT DEFAULT 'A';")
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf TEXT DEFAULT '1';")
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 1;")
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS fragile BOOLEAN DEFAULT FALSE;")
+    cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS weight INTEGER DEFAULT 100;")
+
+    # Fix existing rows
+    cur.execute("""
+    UPDATE products SET
+        aisle = COALESCE(aisle, 'A'),
+        shelf = COALESCE(shelf, '1'),
+        position = COALESCE(position, 1),
+        fragile = COALESCE(fragile, FALSE),
+        weight = COALESCE(weight, 100)
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -64,18 +101,14 @@ def update_cart(product_id, action):
 
             if action == "increase":
                 item["qty"] += 1
-
             elif action == "decrease":
                 if item["qty"] > 1:
                     item["qty"] -= 1
                 else:
                     cart.remove(item)
-
             break
 
-    # ADD NEW ITEM
     if not found and action == "increase":
-
         conn = connect_db()
         cur = conn.cursor()
         cur.execute("SELECT * FROM products WHERE id=%s", (product_id,))
@@ -105,7 +138,6 @@ def update_cart(product_id, action):
 def cart():
     cart = session.get("cart", [])
     total = sum(item["price"] * item["qty"] for item in cart)
-
     return render_template("cart.html", cart=cart, total=total)
 
 
@@ -115,7 +147,6 @@ def checkout():
     cart = session.get("cart", [])
     total = sum(item["price"] * item["qty"] for item in cart)
     wallet = session.get("wallet", 0)
-
     return render_template("checkout.html", total=total, wallet=wallet)
 
 
@@ -175,43 +206,25 @@ def add_product():
             return redirect("/dashboard")
 
         except Exception as e:
-            return f"❌ Error adding product: {str(e)}"
+            return f"❌ Error: {str(e)}"
 
     return render_template("add_product.html")
 
 
-# ---------------- FIX DATABASE ----------------
-@app.route("/fix_db")
-def fix_db():
+# ---------------- RESET DB (LAST RESORT) ----------------
+@app.route("/reset_db")
+def reset_db():
     conn = connect_db()
     cur = conn.cursor()
-
-    cur.execute("""
-    UPDATE products
-    SET 
-        aisle='A',
-        shelf='1',
-        position=1,
-        fragile=false,
-        weight=100
-    WHERE aisle IS NULL
-    """)
-
+    cur.execute("DROP TABLE IF EXISTS products")
     conn.commit()
     cur.close()
     conn.close()
-
-    return "✅ Database Fixed!"
-
-
-# ---------------- LOGOUT ----------------
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
+    return "✅ DB Reset Done"
 
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    create_tables()   # auto-create + fix columns
+    create_tables()
+    init_db_safe()   # 🔥 THIS FIXES YOUR ERROR AUTOMATICALLY
     app.run(debug=True)
