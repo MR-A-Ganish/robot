@@ -19,10 +19,17 @@ def process_order(items):
 
         if location:
             aisle, shelf, pos = location
+
+            # fallback safety
+            aisle = aisle or "A"
+            shelf = shelf or "1"
+            pos = pos or 1
+
             item_locations.append((aisle, shelf, pos, item))
         else:
             steps.append(f"❌ Item {item['name']} not found")
 
+    # sort path
     item_locations.sort(key=lambda x: (x[0], x[1], x[2]))
 
     current_aisle = None
@@ -37,15 +44,13 @@ def process_order(items):
         steps.append(f"📍 Position {pos}")
         steps.append(f"🛒 Picking {item['name']}")
 
-        # SAFE fragile check
         if item.get("fragile", False):
             steps.append("🤏 Soft grip")
         else:
             steps.append("✊ Normal grip")
 
-        # SAFE weight check
         if item.get("weight", 0) > 800:
-            steps.append("⚠️ Heavy item - adjusting grip")
+            steps.append("⚠️ Heavy item detected")
 
         steps.append("✅ Picked")
 
