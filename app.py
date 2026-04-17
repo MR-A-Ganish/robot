@@ -13,7 +13,7 @@ app.secret_key = "supersecretkey"
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        session["user"] = request.form["email"]
+        session["user"] = request.form.get("email", "guest")
         session["cart"] = []
         session["wallet"] = 1000
         return redirect("/dashboard")
@@ -51,14 +51,14 @@ def dashboard():
     return render_template("dashboard.html", products=products)
 
 
-# ---------------- UPDATE CART (FIXED) ----------------
+# ---------------- UPDATE CART (SAFE) ----------------
 @app.route("/update_cart/<int:product_id>/<action>")
 def update_cart(product_id, action):
 
     cart = session.get("cart", [])
     found = False
 
-    # 🔁 UPDATE EXISTING ITEM
+    # Update existing item
     for item in cart:
         if item["id"] == product_id:
             found = True
@@ -74,15 +74,13 @@ def update_cart(product_id, action):
 
             break
 
-    # ➕ ADD NEW ITEM (SAFE)
+    # Add new item safely
     if not found and action == "increase":
 
         conn = connect_db()
         cur = conn.cursor()
-
         cur.execute("SELECT * FROM products WHERE id=%s", (product_id,))
         p = cur.fetchone()
-
         cur.close()
         conn.close()
 
@@ -94,12 +92,12 @@ def update_cart(product_id, action):
             "name": p[1],
             "price": p[2],
             "image": p[3] if len(p) > 3 else "",
-            "fragile": False,   # SAFE DEFAULT
+            "fragile": False,
+            "weight": 100,   # ✅ safe default
             "qty": 1
         })
 
     session["cart"] = cart
-
     return redirect("/dashboard")
 
 
@@ -122,7 +120,7 @@ def checkout():
     return render_template("checkout.html", total=total, wallet=wallet)
 
 
-# ---------------- PLACE ORDER ----------------
+# ---------------- PLACE ORDER (FIXED) ----------------
 @app.route("/place_order")
 def place_order():
 
@@ -137,9 +135,13 @@ def place_order():
     if wallet < total:
         return "❌ Not enough balance"
 
-    session["wallet"] -= total
+    # deduct wallet
+    session["wallet"] = wallet - total
 
-    result = process_order(cart)
+    try:
+        result = process_order(cart)
+    except Exception as e:
+        return f"❌ Robot Error: {str(e)}"
 
     session["cart"] = []
 
@@ -158,11 +160,11 @@ def add_product():
             INSERT INTO products (name,price,image,aisle,shelf,position,fragile,weight)
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
-                request.form["name"],
-                int(request.form["price"]),
+                request.form.get("name"),
+                int(request.form.get("price", 0)),
                 request.form.get("image", ""),
-                request.form.get("aisle", ""),
-                request.form.get("shelf", ""),
+                request.form.get("aisle", "A"),
+                request.form.get("shelf", "1"),
                 int(request.form.get("position", 1)),
                 request.form.get("fragile") == "on",
                 int(request.form.get("weight", 100))
@@ -175,9 +177,16 @@ def add_product():
             return redirect("/dashboard")
 
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            return f"❌ Error adding product: {str(e)}"
 
     return render_template("add_product.html")
+
+
+# ---------------- LOGOUT ----------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 
 # ---------------- RUN ----------------
